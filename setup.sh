@@ -11,7 +11,6 @@ BRANCH="main"
 WORKING_DIR=$(pwd)
 
 # Installer
-INSTALL_SSHD=""
 INSTALL_EVENTS=""
 NO_AUTOSTART=""
 NO_INPUT=""
@@ -99,10 +98,6 @@ for i in "$@"; do
       INSTALL_OWW=0
       shift
       ;;
-    --install-ssh)
-      INSTALL_SSHD=1
-      shift
-      ;;
     --install-events)
       INSTALL_EVENTS=1
       shift
@@ -131,7 +126,6 @@ interactive_prompts () {
     INSTALL_WYOMING=0
     INSTALL_OWW=0
     INSTALL_EVENTS=0
-    INSTALL_SSHD=0
     MODE="INSTALL"
     declare -a INSTALL_OPTS=($($DIALOG --backtitle "$INTERACTIVE_TITLE" \
     --clear \
@@ -139,15 +133,13 @@ interactive_prompts () {
     --checklist "Select options to install" 15 90 5 \
             1   "Core Wyoming Satellite service." ON \
             2   "OpenWakeWord to trigger the Assist pipeline locally on device." ON \
-            3   "Event forwarder to expose Wyoming Events into Home Assistant." OFF \
-            4   "SSH Server to access Termux from another device." OFF 2>&1 >/dev/tty))
+            3   "Event forwarder to expose Wyoming Events into Home Assistant." OFF 2>&1 >/dev/tty))
 
     for sel in "${INSTALL_OPTS[@]}"; do
         case "$sel" in
             1) INSTALL_WYOMING=1;;
             2) INSTALL_OWW=1;;
             3) INSTALL_EVENTS=1;;
-            4) INSTALL_SSHD=1;;
             *) echo "Unknown option!";;
         esac
     done
@@ -526,15 +518,9 @@ EOF
         make_service "wyoming-wakeword" "wyoming-wakeword-android"
     fi
 
-    if [ "$INSTALL_SSHD" = "1" ]; then
-        echo "Installing SSH server"
-        pkg install openssh -y
-    fi
-
     if [ "$NO_AUTOSTART" = "" ]; then
         echo "Starting services now..."
         killall python3 # ensure no processes are running before starting the service
-        if [ "$INSTALL_SSHD" = "1" ]; then sv-enable sshd; fi
         if [ "$INSTALL_OWW" = "1" ]; then sv-enable wyoming-wakeword; fi
         if [ "$INSTALL_EVENTS" = "1" ]; then sv-enable wyoming-events; fi
         if [ "$INSTALL_WYOMING" = "1" ]; then sv-enable wyoming-satellite; fi

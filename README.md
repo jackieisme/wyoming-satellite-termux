@@ -64,8 +64,6 @@ A wakelock will be used to keep the services operational in the background.
 
 * **`--skip-wakeword`:** Skip installing the OpenWakeWord engine used for wake word detection.
 
-* **`--install-ssh`:** Install an SSH server (openssh) to enable remote command-line access to the device.
-
 * **`--install-events`:** Install a Wyoming event forwarder to broadcast events to the Home Assistant event bus.
 
 * **`--no-autostart`:** Prevent Wyoming from automatically starting at the end of the installation process.
