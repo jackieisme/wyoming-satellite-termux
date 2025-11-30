@@ -59,16 +59,13 @@ enable_services () {
   sv-enable wyoming-satellite
   sv-enable wyoming-wakeword
   sv-enable wyoming-events
-  sv-enable squeezelite
 }
 
 disable_services () {
   sv-disable wyoming-satellite
   sv-disable wyoming-wakeword
   sv-disable wyoming-events
-  sv-disable squeezelite
   killall python3
-  killall squeezelite
 }
 
 update_service () {
@@ -152,7 +149,6 @@ if [ "$COMMAND" = "UPDATE" ]; then
   update_service "wyoming-satellite" "wyoming-satellite-android"
   update_service "wyoming-wakeword" "wyoming-wakeword-android"
   update_service "wyoming-events" "wyoming-events-android"
-  update_service "squeezelite" "squeezelite-android"
   echo "Update completed, enabling services"
   enable_services
   exit 0

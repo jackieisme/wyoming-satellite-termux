@@ -1,6 +1,6 @@
 ## Wyoming Satellite on Android
 
-This project provides a simple way of setting up Wyoming Satellite, OpenWakeWord and Squeezelite on Android inside of Termux.
+This project provides a simple way of setting up Wyoming Satellite, and OpenWakeWord on Android inside of Termux.
 
 ### Prerequisites
 
@@ -12,21 +12,15 @@ Install Termux via F-Droid or from the GitHub APKs. The version on Google Play s
 
 ### How to install
 
-For a default install, Open Termux and run:
+From Termux:
 
 ``` Bash
-(command -v wget > /dev/null 2>&1 || (echo "Installing wget..." && pkg install -y wget)) && bash <(wget -qO- https://raw.githubusercontent.com/pantherale0/wyoming-satellite-termux/refs/heads/main/setup.sh)
+./setup.sh
 ```
 
 The above script will display a GUI based installer for this suite of applications.
 
 A wakelock will be used to keep the services operational in the background.
-
-The default parameters will:
-1. Install Wyoming, OpenWakeWord and Squeezelite
-2. Set the wake word to `Ok Nabu`
-3. Set the Home Assistant device name to the make and model of the Android device.
-4. Auto launch Wyoming and OpenWakeWord at the end of installation.
 
 ### Command line parameters
 
@@ -69,8 +63,6 @@ The default parameters will:
 * **`--skip-wyoming`:** Skip installing the Wyoming Satellite software itself.
 
 * **`--skip-wakeword`:** Skip installing the OpenWakeWord engine used for wake word detection.
-
-* **`--skip-squeezelite`:** Skip installing the Squeezelite player software.
 
 * **`--install-ssh`:** Install an SSH server (openssh) to enable remote command-line access to the device.
 

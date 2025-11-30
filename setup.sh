@@ -18,7 +18,6 @@ NO_INPUT=""
 SKIP_UNINSTALL=0
 INSTALL_WYOMING=1
 INSTALL_OWW=1
-INSTALL_SQUEEZELITE=1
 INTERACTIVE=1
 
 # Config
@@ -100,10 +99,6 @@ for i in "$@"; do
       INSTALL_OWW=0
       shift
       ;;
-    --skip-squeezelite)
-      INSTALL_SQUEEZELITE=0
-      shift
-      ;;
     --install-ssh)
       INSTALL_SSHD=1
       shift
@@ -135,7 +130,6 @@ interactive_prompts () {
     ### Prompt to select options to install
     INSTALL_WYOMING=0
     INSTALL_OWW=0
-    INSTALL_SQUEEZELITE=0
     INSTALL_EVENTS=0
     INSTALL_SSHD=0
     MODE="INSTALL"
@@ -145,17 +139,15 @@ interactive_prompts () {
     --checklist "Select options to install" 15 90 5 \
             1   "Core Wyoming Satellite service." ON \
             2   "OpenWakeWord to trigger the Assist pipeline locally on device." ON \
-            3   "Squeezelite to play your favourite tunes." ON \
-            4   "Event forwarder to expose Wyoming Events into Home Assistant." OFF \
-            5   "SSH Server to access Termux from another device." OFF 2>&1 >/dev/tty))
+            3   "Event forwarder to expose Wyoming Events into Home Assistant." OFF \
+            4   "SSH Server to access Termux from another device." OFF 2>&1 >/dev/tty))
 
     for sel in "${INSTALL_OPTS[@]}"; do
         case "$sel" in
             1) INSTALL_WYOMING=1;;
             2) INSTALL_OWW=1;;
-            3) INSTALL_SQUEEZELITE=1;;
-            4) INSTALL_EVENTS=1;;
-            5) INSTALL_SSHD=1;;
+            3) INSTALL_EVENTS=1;;
+            4) INSTALL_SSHD=1;;
             *) echo "Unknown option!";;
         esac
     done
@@ -311,14 +303,7 @@ preinstall () {
     if [ "$INSTALL_OWW" = "0" ]; then sed -i '/sv\-enable\ wyoming\-wakeword/d' $PREFIX/bin/wyoming-cli; fi
     if [ "$INSTALL_EVENTS" = "0" ]; then sed -i '/sv\-enable\ wyoming\-events/d' $PREFIX/bin/wyoming-cli; fi
     if [ "$INSTALL_WYOMING" = "0" ]; then sed -i '/sv\-enable\ wyoming\-satellite/d' $PREFIX/bin/wyoming-cli; fi
-    if [ "$INSTALL_SQUEEZELITE" = "0" ]; then sed -i '/sv\-enable\ squeezelite/d' $PREFIX/bin/wyoming-cli; fi
     chmod a+x $PREFIX/bin/wyoming-cli
-}
-
-install_squeezelite () {
-    echo "allow-external-apps=true" >> ~/.termux/termux.properties
-    pkg install squeezelite -y
-    echo "Squeezelite installed"
 }
 
 install_events () {
@@ -356,7 +341,6 @@ cleanup () {
     sv-disable wyoming-satellite
     sv-disable wyoming-wakeword
     sv-disable wyoming-events
-    sv-disable squeezelite
     killall python3
 
     echo "Deleting files and directories related to the project..."
@@ -366,12 +350,8 @@ cleanup () {
     rm -rf ~/wyoming-satellite
     rm -rf ~/wyoming-openwakeword
 
-    echo "Removing squeezelite"
-    pkg remove squeezelite -y
-
     echo "Removing services"
     rm -rf $PREFIX/var/service/wyoming-*
-    rm -rf $PREFIX/var/service/squeezelite
 }
 
 uninstall () {
@@ -546,12 +526,6 @@ EOF
         make_service "wyoming-wakeword" "wyoming-wakeword-android"
     fi
 
-    if [ "$INSTALL_SQUEEZELITE" = "1" ]; then
-        install_squeezelite
-        echo "Setting up squeezelite service..."
-        make_service "squeezelite" "squeezelite-android"
-    fi
-
     if [ "$INSTALL_SSHD" = "1" ]; then
         echo "Installing SSH server"
         pkg install openssh -y
@@ -564,7 +538,6 @@ EOF
         if [ "$INSTALL_OWW" = "1" ]; then sv-enable wyoming-wakeword; fi
         if [ "$INSTALL_EVENTS" = "1" ]; then sv-enable wyoming-events; fi
         if [ "$INSTALL_WYOMING" = "1" ]; then sv-enable wyoming-satellite; fi
-        if [ "$INSTALL_SQUEEZELITE" = "1" ]; then sv-enable squeezelite; fi
     fi
 }
 
