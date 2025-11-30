@@ -211,7 +211,7 @@ interactive_ip_addr () {
 preinstall () {
     echo "Running pre-install"
     echo "Enter home directory"
-    cd ~
+    cd $HOME
 
     touch wyoming.conf
 
@@ -299,8 +299,8 @@ preinstall () {
 }
 
 install_events () {
-    mkdir -p ~/wyoming-events
-    cp $WORKING_DIR/wyoming-events.py ~/wyoming-events/wyoming-events.py
+    mkdir -p $HOME/wyoming-events
+    cp $WORKING_DIR/wyoming-events.py $HOME/wyoming-events/wyoming-events.py
     echo "Configuring events"
     python3 -m pip install wyoming aiohttp # ensure required libs are installed
     make_service "wyoming-events" "wyoming-events-android"
@@ -336,11 +336,11 @@ cleanup () {
     killall python3
 
     echo "Deleting files and directories related to the project..."
-    rm -f ~/tmp.wav
-    rm -f ~/pulseaudio-without-memfd.deb 
-    rm -f ~/.termux/boot/services-autostart
-    rm -rf ~/wyoming-satellite
-    rm -rf ~/wyoming-openwakeword
+    rm -f $HOME/tmp.wav
+    rm -f $HOME/pulseaudio-without-memfd.deb 
+    rm -f $HOME/.termux/boot/services-autostart
+    rm -rf $HOME/wyoming-satellite
+    rm -rf $HOME/wyoming-openwakeword
 
     echo "Removing services"
     rm -rf $PREFIX/var/service/wyoming-*
@@ -480,9 +480,9 @@ EOF
         fi
 
         echo "Setting up autostart..."
-        mkdir -p ~/.termux/boot/
-        cp $WORKING_DIR/boot/services-autostart ~/.termux/boot/
-        chmod +x ~/.termux/boot/services-autostart
+        mkdir -p $HOME/.termux/boot/
+        cp $WORKING_DIR/boot/services-autostart $HOME/.termux/boot/
+        chmod +x $HOME/.termux/boot/services-autostart
 
         make_service "wyoming-satellite" "wyoming-satellite-android"
 
@@ -506,7 +506,7 @@ EOF
         echo "Ensure python-tflite-runtime, ninja and patchelf are installed..."
         pkg install python-tflite-runtime ninja patchelf -y
         echo "Cloning Wyoming OpenWakeWord repo..."
-        cd ~
+        cd $HOME
         git clone https://github.com/rhasspy/wyoming-openwakeword.git
         echo "Enter wyoming-openwakeword directory..."
         cd wyoming-openwakeword

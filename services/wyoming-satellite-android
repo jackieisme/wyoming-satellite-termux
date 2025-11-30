@@ -58,15 +58,15 @@ wlog "Sleeping for 15s to allow wakeword / events to start"
 sleep 15
 wlog "Starting satellite"
 exec stdbuf -oL -eL python3 ./script/run \
---name "$SATELLITE_NAME" \
---no-zeroconf \
---uri 'tcp://0.0.0.0:10700' \
---mic-command 'rec -r 16000 -c 1 -b 16 -e signed-integer -t raw --no-show-progress -' \
---snd-command 'play -r 22050 -c 1 -b 16 -e signed-integer -t raw --no-show-progress -' \
---awake-wav "$WAKESOUND" \
---done-wav "$DONESOUND" \
---timer-finished-wav "$TIMERFINISHEDSOUND" \
---timer-finished-wav-repeat $TIMERFINISHEDREPEAT \
-$OWW_FLAGS \
-$EVENTS_FLAGS \
-$WYOMING_SATELLITE_FLAGS 2>&1 | tee -a "$HOME/wyoming-satellite.log"
+    --name "$SATELLITE_NAME" \
+    --no-zeroconf \
+    --uri 'tcp://0.0.0.0:10700' \
+    --mic-command 'rec -r 16000 -c 1 -b 16 -e signed-integer -t raw --no-show-progress -' \
+    --snd-command 'play -r 22050 -c 1 -b 16 -e signed-integer -t raw --no-show-progress -' \
+    --awake-wav "$WAKESOUND" \
+    --done-wav "$DONESOUND" \
+    --timer-finished-wav "$TIMERFINISHEDSOUND" \
+    --timer-finished-wav-repeat $TIMERFINISHEDREPEAT \
+    $OWW_FLAGS \
+    $EVENTS_FLAGS \
+    $WYOMING_SATELLITE_FLAGS 2>&1 | tee -a "$HOME/wyoming-satellite.log"

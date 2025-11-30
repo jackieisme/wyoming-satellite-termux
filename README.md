@@ -12,13 +12,11 @@ Install Termux via F-Droid or from the GitHub APKs. The version on Google Play s
 
 ### How to install
 
-From Termux:
+Run GUI installer From Termux:
 
 ``` Bash
-./setup.sh
+./gui_installer.sh
 ```
-
-The above script will display a GUI based installer for this suite of applications.
 
 A wakelock will be used to keep the services operational in the background.
 
