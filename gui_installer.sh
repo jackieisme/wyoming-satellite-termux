@@ -7,7 +7,6 @@
 INTERACTIVE_TITLE="Home Assistant Voice Termux Installer"
 
 MODE=""
-BRANCH="main"
 WORKING_DIR=$(pwd)
 
 # Installer
@@ -56,10 +55,6 @@ for i in "$@"; do
       ;;
     --timer-finished-repeat=*)
       SELECTED_TIMER_REPEAT="${i#*=}"
-      shift
-      ;;
-    --branch=*)
-      BRANCH="${i#*=}"
       shift
       ;;
     --hass-token=*)
@@ -118,8 +113,6 @@ for i in "$@"; do
       ;;
   esac
 done
-
-echo "Branch: $BRANCH"
 
 interactive_prompts () {
     ### Prompt to select options to install
@@ -202,12 +195,6 @@ EOF
     clear
 }
 
-interactive_ip_addr () {
-    MESSAGE=$(ifconfig | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b")
-    $DIALOG --title "IP Address" --backtitle "$INTERACTIVE_TITLE" --msgbox "$MESSAGE" 20 60
-    clear
-}
-
 preinstall () {
     echo "Running pre-install"
     echo "Enter home directory"
@@ -217,16 +204,6 @@ preinstall () {
 
     echo "Update packages and index"
     pkg up
-
-    echo "Ensure wget is available..."
-    if ! command -v wget > /dev/null 2>&1; then
-        echo "Installing wget..."
-        pkg install wget -y
-        if ! command -v wget > /dev/null 2>&1; then
-            echo "ERROR: Failed to install wget" >&2
-            exit 1
-        fi
-    fi
 
     echo "Ensure Python + pip is available..."
     if ! command -v python3 > /dev/null 2>&1; then
@@ -381,6 +358,39 @@ make_service () {
     echo "Installed $SVC_NAME service"
 }
 
+check_memfd_support () {
+    KERNEL_MAJOR_VERSION="$(uname -r | awk -F'.' '{print $1}')"
+    if [ $KERNEL_MAJOR_VERSION -le 3 ]; then
+        echo "Your kernel is too old to support memfd."
+        echo "Installing a custom build of pulseaudio that doesn't depend on memfd..."
+        export ARCH="$(termux-info | grep -A 1 "CPU architecture:" | tail -1)"
+        echo "Checking if pulseaudio is currently installed..."
+        if command -v pulseaudio > /dev/null 2>&1; then
+            echo "Uninstalling pulseaudio..."
+            pkg remove pulseaudio -y
+        fi
+        echo "Ensure wget is available..."
+        if ! command -v wget > /dev/null 2>&1; then
+            echo "Installing wget..."
+            pkg install wget -y
+            if ! command -v wget > /dev/null 2>&1; then
+                echo "ERROR: Failed to install wget" >&2
+                exit 1
+            fi
+        fi
+        echo "Downloading pulseaudio build that doesn't require memfd..."
+        wget -O ./pulseaudio-without-memfd.deb "https://github.com/T-vK/pulseaudio-termux-no-memfd/releases/download/1.1.0/pulseaudio_17.0-2_${ARCH}.deb"
+        echo "Installing the downloaded pulseaudio build..."
+        pkg install ./pulseaudio-without-memfd.deb -y
+        echo "Removing the downloaded pulseaudio build (not required after installation)..."
+        rm -f ./pulseaudio-without-memfd.deb
+    else
+        if ! command -v pulseaudio > /dev/null 2>&1; then
+            pkg install pulseaudio -y
+        fi
+    fi
+}
+
 install () {
     if [ "$NO_INPUT" = "" ]; then
         MESSAGE=$(cat << EOF
@@ -410,27 +420,7 @@ EOF
     termux-wake-lock
 
     echo "Checking if Linux kernel supports memfd..."
-    KERNEL_MAJOR_VERSION="$(uname -r | awk -F'.' '{print $1}')"
-    if [ $KERNEL_MAJOR_VERSION -le 3 ]; then
-        echo "Your kernel is too old to support memfd."
-        echo "Installing a custom build of pulseaudio that doesn't depend on memfd..."
-        export ARCH="$(termux-info | grep -A 1 "CPU architecture:" | tail -1)"
-        echo "Checking if pulseaudio is currently installed..."
-        if command -v pulseaudio > /dev/null 2>&1; then
-            echo "Uninstalling pulseaudio..."
-            pkg remove pulseaudio -y
-        fi
-        echo "Downloading pulseaudio build that doesn't require memfd..."
-        wget -O ./pulseaudio-without-memfd.deb "https://github.com/T-vK/pulseaudio-termux-no-memfd/releases/download/1.1.0/pulseaudio_17.0-2_${ARCH}.deb"
-        echo "Installing the downloaded pulseaudio build..."
-        pkg install ./pulseaudio-without-memfd.deb -y
-        echo "Removing the downloaded pulseaudio build (not required after installation)..."
-        rm -f ./pulseaudio-without-memfd.deb
-    else
-        if ! command -v pulseaudio > /dev/null 2>&1; then
-            pkg install pulseaudio -y
-        fi
-    fi
+    check_memfd_support
 
     if ! command -v pulseaudio > /dev/null 2>&1; then
         echo "ERROR: Failed to install pulseaudio..." >&2
@@ -466,18 +456,14 @@ EOF
         echo "Enter wyoming-satellite directory..."
         cd wyoming-satellite
 
-        echo "Injecting faulthandler" # https://community.home-assistant.io/t/how-to-run-wyoming-satellite-and-openwakeword-on-android/777571/101?u=11harveyj
-        sed -i '/_LOGGER = logging.getLogger()/a import faulthandler, signal' wyoming_satellite/__main__.py
-        sed -i '/import faulthandler, signal/a faulthandler.register(signal.SIGSYS)' wyoming_satellite/__main__.py
+        #echo "Injecting faulthandler" # https://community.home-assistant.io/t/how-to-run-wyoming-satellite-and-openwakeword-on-android/777571/101?u=11harveyj
+        #sed -i '/_LOGGER = logging.getLogger()/a import faulthandler, signal' wyoming_satellite/__main__.py
+        #sed -i '/import faulthandler, signal/a faulthandler.register(signal.SIGSYS)' wyoming_satellite/__main__.py
 
         echo "Running Wyoming Satellite setup script..."
         echo "This process may appear to hang on low spec hardware. Do not exit unless you are sure that that the process is no longer responding"
         ./script/setup
         cd ..
-
-        if [ "$NO_INPUT" = "" ]; then
-            interactive_ip_addr
-        fi
 
         echo "Setting up autostart..."
         mkdir -p $HOME/.termux/boot/
