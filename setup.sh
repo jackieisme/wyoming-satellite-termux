@@ -1,4 +1,4 @@
-#!/data/data/com.termux/files/usr/bin/sh
+#!/data/data/com.termux/files/usr/bin/bash
 
 : ${DIALOG=dialog}
 : ${DIALOG_OK=0}
@@ -8,6 +8,7 @@ INTERACTIVE_TITLE="Home Assistant Voice Termux Installer"
 
 MODE=""
 BRANCH="main"
+WORKING_DIR=$(pwd)
 
 # Installer
 INSTALL_SSHD=""
@@ -306,7 +307,11 @@ preinstall () {
     fi
 
     echo "Installing Wyoming CLI"
-    wget "https://raw.githubusercontent.com/pantherale0/wyoming-satellite-termux/refs/heads/$BRANCH/scripts/wyoming-cli" -O $PREFIX/bin/wyoming-cli
+    cp $WORKING_DIR/scripts/wyoming-cli $PREFIX/bin/wyoming-cli
+    if [ "$INSTALL_OWW" = "0" ]; then sed -i '/sv\-enable\ wyoming\-wakeword/d' $PREFIX/bin/wyoming-cli; fi
+    if [ "$INSTALL_EVENTS" = "0" ]; then sed -i '/sv\-enable\ wyoming\-events/d' $PREFIX/bin/wyoming-cli; fi
+    if [ "$INSTALL_WYOMING" = "0" ]; then sed -i '/sv\-enable\ wyoming\-satellite/d' $PREFIX/bin/wyoming-cli; fi
+    if [ "$INSTALL_SQUEEZELITE" = "0" ]; then sed -i '/sv\-enable\ squeezelite/d' $PREFIX/bin/wyoming-cli; fi
     chmod a+x $PREFIX/bin/wyoming-cli
 }
 
@@ -318,7 +323,7 @@ install_squeezelite () {
 
 install_events () {
     mkdir -p ~/wyoming-events
-    wget "https://raw.githubusercontent.com/pantherale0/wyoming-satellite-termux/refs/heads/$BRANCH/wyoming-events.py" -O ~/wyoming-events/wyoming-events.py
+    cp $WORKING_DIR/wyoming-events.py ~/wyoming-events/wyoming-events.py
     echo "Configuring events"
     python3 -m pip install wyoming aiohttp # ensure required libs are installed
     make_service "wyoming-events" "wyoming-events-android"
@@ -399,7 +404,7 @@ make_service () {
     touch $PREFIX/var/service/$SVC_NAME/down # ensure the service does not start when we kill runsv
     mkdir -p $PREFIX/var/service/$SVC_NAME/log
     ln -sf $PREFIX/share/termux-services/svlogger $PREFIX/var/service/$SVC_NAME/log/run
-    wget "https://raw.githubusercontent.com/pantherale0/wyoming-satellite-termux/refs/heads/$BRANCH/services/$SVC_RUN_FILE" -O $PREFIX/var/service/$SVC_NAME/run
+    cp $WORKING_DIR/services/$SVC_RUN_FILE $PREFIX/var/service/$SVC_NAME/run
     chmod +x $PREFIX/var/service/$SVC_NAME/run
     echo "Installed $SVC_NAME service"
 }
@@ -504,7 +509,7 @@ EOF
 
         echo "Setting up autostart..."
         mkdir -p ~/.termux/boot/
-        wget -P ~/.termux/boot/ "https://raw.githubusercontent.com/pantherale0/wyoming-satellite-termux/refs/heads/$BRANCH/boot/services-autostart"
+        cp $WORKING_DIR/boot/services-autostart ~/.termux/boot/
         chmod +x ~/.termux/boot/services-autostart
 
         make_service "wyoming-satellite" "wyoming-satellite-android"
@@ -555,11 +560,11 @@ EOF
     if [ "$NO_AUTOSTART" = "" ]; then
         echo "Starting services now..."
         killall python3 # ensure no processes are running before starting the service
-        sv-enable sshd
-        sv-enable wyoming-wakeword
-        sv-enable wyoming-events
-        sv-enable wyoming-satellite
-        sv-enable squeezelite
+        if [ "$INSTALL_SSHD" = "1" ]; then sv-enable sshd; fi
+        if [ "$INSTALL_OWW" = "1" ]; then sv-enable wyoming-wakeword; fi
+        if [ "$INSTALL_EVENTS" = "1" ]; then sv-enable wyoming-events; fi
+        if [ "$INSTALL_WYOMING" = "1" ]; then sv-enable wyoming-satellite; fi
+        if [ "$INSTALL_SQUEEZELITE" = "1" ]; then sv-enable squeezelite; fi
     fi
 }
 
