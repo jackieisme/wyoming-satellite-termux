@@ -172,7 +172,7 @@ interactive_post_install () {
     MESSAGE=$(cat << EOF
 Install is now complete, the rest of the configuration can be performed in the Home Assistant UI
 -----
-Setup the Wyoming platform (see readme for information). Use the IP address noted earlier with
+Setup the Wyoming platform using the Android device's IP address with
 Port: 10700 (Wyoming Satellite)
 If you configured the event forwarder, these will be available under 'wyoming_*'
 -----
@@ -463,7 +463,6 @@ EOF
         echo "Running Wyoming Satellite setup script..."
         echo "This process may appear to hang on low spec hardware. Do not exit unless you are sure that that the process is no longer responding"
         ./script/setup
-        cd ..
 
         echo "Setting up autostart..."
         mkdir -p $HOME/.termux/boot/
@@ -491,16 +490,19 @@ EOF
         echo "Selected $SELECTED_WAKE_WORD"
         echo "Ensure python-tflite-runtime, ninja and patchelf are installed..."
         pkg install python-tflite-runtime ninja patchelf -y
+
         echo "Cloning Wyoming OpenWakeWord repo..."
         cd $HOME
         git clone https://github.com/rhasspy/wyoming-openwakeword.git
+
         echo "Enter wyoming-openwakeword directory..."
         cd wyoming-openwakeword
+
         echo "Allow system site packages in Wyoming OpenWakeWord setup script..."
         sed -i 's/\(builder = venv.EnvBuilder(with_pip=True\)/\1, system_site_packages=True/' ./script/setup
+
         echo "Running Wyoming OpenWakeWord setup script..."
         ./script/setup
-        cd ..
         make_service "wyoming-wakeword" "wyoming-wakeword-android"
     fi
 
