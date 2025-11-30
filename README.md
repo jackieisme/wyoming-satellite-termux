@@ -1,6 +1,6 @@
 ## Wyoming Satellite on Android
 
-This project provides a simple way of setting up Wyoming Satellite, and OpenWakeWord on Android inside of Termux.
+This project provides a simple way of setting up Wyoming Satellite and OpenWakeWord on Android inside of Termux.
 
 ### Prerequisites
 
@@ -78,10 +78,6 @@ Optionally, you can install a service to forward Wyoming events to your Home Ass
 
 * **`--hass-token`:** A [long-lived access token](https://community.home-assistant.io/t/how-to-get-long-lived-access-token/162159/5?u=11harveyj) to access your Home Assistant instance.
 
-**Logs:**
-
-* All Wyoming event forwarding logs will be recorded in the "wyoming-events.log" file.
-
 #### Available events:
 
 | Event Type | Event Description | Extra Event Data |
@@ -102,23 +98,6 @@ Optionally, you can install a service to forward Wyoming events to your Home Ass
 | wyoming_played | Audio playback finished | |
 
 And any other event from Wyoming.
-
-### How to uninstall
-
-Open Termux and run:
-
-``` Bash
-bash <(wget -qO- https://raw.githubusercontent.com/pantherale0/wyoming-satellite-termux/refs/heads/main/setup.sh) --uninstall
-```
-
-### Reconfigure install
-
-Open Termux and run:
-``` Bash
-bash <(wget -qO- https://raw.githubusercontent.com/pantherale0/wyoming-satellite-termux/refs/heads/main/setup.sh) --configure
-```
-
-Without any command line flags, the install will reset to a default state. See the configuration section above for supported flags.
 
 ### Integrate into HomeAssistant
 

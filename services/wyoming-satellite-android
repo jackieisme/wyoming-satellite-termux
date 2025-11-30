@@ -1,13 +1,13 @@
 #!/data/data/com.termux/files/usr/bin/sh
 . $HOME/wyoming.conf
-export VERSION=2
+export WLOG="$HOME/wyoming-satellite.log"
 
 wlog() {
     local message="$1"
-    echo "$message" 2>&1 | tee -a "$HOME/wyoming-satellite.log"
+    echo "$message" 2>&1 | tee -a $WLOG
 }
 
-echo "" > "$HOME/wyoming-satellite.log"
+echo "" > $WLOG
 wlog "$(date)"
 
 wlog "Ensure sox is available..."
@@ -69,4 +69,4 @@ exec stdbuf -oL -eL python3 ./script/run \
     --timer-finished-wav-repeat $TIMERFINISHEDREPEAT \
     $OWW_FLAGS \
     $EVENTS_FLAGS \
-    $WYOMING_SATELLITE_FLAGS 2>&1 | tee -a "$HOME/wyoming-satellite.log"
+    $WYOMING_SATELLITE_FLAGS 2>&1 | tee -a $WLOG
