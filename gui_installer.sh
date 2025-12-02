@@ -315,12 +315,21 @@ cleanup () {
     echo "Deleting files and directories related to the project..."
     rm -f $HOME/tmp.wav
     rm -f $HOME/pulseaudio-without-memfd.deb 
-    rm -f $HOME/.termux/boot/services-autostart
     rm -rf $HOME/wyoming-satellite
     rm -rf $HOME/wyoming-openwakeword
 
     echo "Removing services"
     rm -rf $PREFIX/var/service/wyoming-*
+
+    if [ "$MODE" = "UNINSTALL" ]; then
+        if command -v sv > /dev/null 2>&1; then
+            echo "Would you like to disable wakelock autostart? [y/N]"
+            read disable_autostart
+            if [ "$disable_autostart" = "y" ] || [ "$disable_autostart" = "Y" ]; then
+                rm -f $HOME/.termux/boot/services-autostart
+            fi
+        fi
+    fi
 }
 
 uninstall () {
@@ -509,9 +518,7 @@ EOF
     if [ "$NO_AUTOSTART" = "" ]; then
         echo "Starting services now..."
         killall python3 # ensure no processes are running before starting the service
-        if [ "$INSTALL_OWW" = "1" ]; then sv-enable wyoming-wakeword; fi
-        if [ "$INSTALL_EVENTS" = "1" ]; then sv-enable wyoming-events; fi
-        if [ "$INSTALL_WYOMING" = "1" ]; then sv-enable wyoming-satellite; fi
+        sv-enable wyoming-satellite
     fi
 }
 
