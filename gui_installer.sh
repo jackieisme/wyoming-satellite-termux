@@ -464,10 +464,11 @@ EOF
 
         echo "Enter wyoming-satellite directory..."
         cd wyoming-satellite
+        git checkout 3576c0f
 
-        #echo "Injecting faulthandler" # https://community.home-assistant.io/t/how-to-run-wyoming-satellite-and-openwakeword-on-android/777571/101?u=11harveyj
-        #sed -i '/_LOGGER = logging.getLogger()/a import faulthandler, signal' wyoming_satellite/__main__.py
-        #sed -i '/import faulthandler, signal/a faulthandler.register(signal.SIGSYS)' wyoming_satellite/__main__.py
+        echo "Injecting faulthandler" # https://community.home-assistant.io/t/how-to-run-wyoming-satellite-and-openwakeword-on-android/777571/101?u=11harveyj
+        sed -i '/_LOGGER = logging.getLogger()/a import faulthandler, signal' wyoming_satellite/__main__.py
+        sed -i '/import faulthandler, signal/a faulthandler.register(signal.SIGSYS)' wyoming_satellite/__main__.py
 
         echo "Running Wyoming Satellite setup script..."
         echo "This process may appear to hang on low spec hardware. Do not exit unless you are sure that that the process is no longer responding"
@@ -506,6 +507,7 @@ EOF
 
         echo "Enter wyoming-openwakeword directory..."
         cd wyoming-openwakeword
+        git checkout d8e9780
 
         echo "Allow system site packages in Wyoming OpenWakeWord setup script..."
         sed -i 's/\(builder = venv.EnvBuilder(with_pip=True\)/\1, system_site_packages=True/' ./script/setup
@@ -515,10 +517,12 @@ EOF
         make_service "wyoming-wakeword" "wyoming-wakeword-android"
     fi
 
-    if [ "$NO_AUTOSTART" = "" ]; then
+    if [ "$NO_AUTOSTART" != "0" ]; then
         echo "Starting services now..."
         killall python3 # ensure no processes are running before starting the service
-        sv-enable wyoming-satellite
+        if [ "$INSTALL_OWW" = "1" ]; then sv-enable wyoming-wakeword; fi
+        if [ "$INSTALL_EVENTS" = "1" ]; then sv-enable wyoming-events; fi
+        if [ "$INSTALL_WYOMING" = "1" ]; then sv-enable wyoming-satellite; fi
     fi
 }
 
